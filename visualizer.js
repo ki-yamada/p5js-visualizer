@@ -22,6 +22,7 @@ class Visualizer {
       let audioContext = getAudioContext();
       let source = audioContext.createMediaStreamSource(stream);
       this.fft.setInput(source);
+      console.log('Audio stream started with device:', deviceId);
     }).catch(err => {
       console.error('Error accessing the audio input device:', err);
     });
