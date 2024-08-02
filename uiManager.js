@@ -7,7 +7,7 @@ class UIManager {
     // デバイス取得ボタンを作成
     this.getDevicesButton = createButton('Get Audio Devices');
     this.getDevicesButton.position(10, 60);
-    this.getDevicesButton.mousePressed(this.selectAudioInputDevice.bind(this));
+    this.getDevicesButton.mousePressed(this.requestAudioPermissions.bind(this));
 
     // カメラのダイナミックさを調整するスライダーとラベルを作成
     this.camLabel = createDiv('Camera Dynamic:');
@@ -40,6 +40,14 @@ class UIManager {
     this.speedSlider = createSlider(0.1, 1, 0.5, 0.1);
     this.speedSlider.position(10, 280);
     this.speedSlider.style('width', '200px');
+  }
+
+  requestAudioPermissions() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      this.selectAudioInputDevice();
+    }).catch(err => {
+      console.error('Error accessing the audio input device:', err);
+    });
   }
 
   selectAudioInputDevice() {
