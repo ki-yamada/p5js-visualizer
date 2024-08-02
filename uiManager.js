@@ -38,43 +38,50 @@ class UIManager {
 
   requestAudioPermissions() {
     console.log('Requesting audio permissions...');
-    userStartAudio().then(() => {
-      console.log('Audio context started');
-      this.getAudioDevices();
-    }).catch(err => {
-      console.error('Error starting audio context:', err);
-    });
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        console.log('Audio context started');
+        this.getAudioDevices();
+      })
+      .catch(err => {
+        console.error('Error starting audio context:', err);
+        alert('Error accessing the microphone: ' + err.message);
+      });
   }
 
   getAudioDevices() {
     console.log('Getting user media...');
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      console.log('User media obtained');
-      navigator.mediaDevices.enumerateDevices().then(devices => {
-        let audioDevices = devices.filter(device => device.kind === 'audioinput');
-        console.log('Available audio input devices:', audioDevices);
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        console.log('User media obtained');
+        navigator.mediaDevices.enumerateDevices().then(devices => {
+          let audioDevices = devices.filter(device => device.kind === 'audioinput');
+          console.log('Available audio input devices:', audioDevices);
 
-        this.deviceSelect.option('Select a device', ''); // 初期選択肢
-        audioDevices.forEach((device, index) => {
-          this.deviceSelect.option(device.label || `Device ${index}`, device.deviceId);
-          console.log(`${index}: ${device.label}`);
-        });
+          this.deviceSelect.option('Select a device', ''); // 初期選択肢
+          audioDevices.forEach((device, index) => {
+            this.deviceSelect.option(device.label || `Device ${index}`, device.deviceId);
+            console.log(`${index}: ${device.label}`);
+          });
 
-        this.deviceSelect.changed(() => {
-          let selectedDeviceId = this.deviceSelect.value();
-          if (selectedDeviceId) {
-            console.log(`Selected device ID: ${selectedDeviceId}`);
-            visualizer.startAudioStream(selectedDeviceId);
-          } else {
-            console.error('No audio input device selected.');
-          }
+          this.deviceSelect.changed(() => {
+            let selectedDeviceId = this.deviceSelect.value();
+            if (selectedDeviceId) {
+              console.log(`Selected device ID: ${selectedDeviceId}`);
+              // visualizer.startAudioStream(selectedDeviceId); // visualizerが未定義のためコメントアウト
+            } else {
+              console.error('No audio input device selected.');
+            }
+          });
+        }).catch(err => {
+          console.error('Error enumerating devices:', err);
+          alert('Error enumerating devices: ' + err.message);
         });
-      }).catch(err => {
-        console.error('Error enumerating devices:', err);
+      })
+      .catch(err => {
+        console.error('Error accessing the audio input device:', err);
+        alert('Error accessing the audio input device: ' + err.message);
       });
-    }).catch(err => {
-      console.error('Error accessing the audio input device:', err);
-    });
   }
 
   show() {
@@ -102,4 +109,10 @@ class UIManager {
     this.colorLabel.hide();
     this.speedLabel.hide();
   }
+}
+
+function setup() {
+  noCanvas();
+  let uiManager = new UIManager();
+  uiManager.show();
 }
