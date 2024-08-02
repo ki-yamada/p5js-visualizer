@@ -1,15 +1,12 @@
 class UIManager {
   constructor() {
-    // デバイス選択のドロップダウンメニューを作成
     this.deviceSelect = createSelect();
     this.deviceSelect.position(10, 10);
 
-    // デバイス取得ボタンを作成
     this.getDevicesButton = createButton('Get Audio Devices');
     this.getDevicesButton.position(10, 60);
     this.getDevicesButton.mousePressed(this.requestAudioPermissions.bind(this));
 
-    // カメラのダイナミックさを調整するスライダーとラベルを作成
     this.camLabel = createDiv('Camera Dynamic:');
     this.camLabel.position(10, 110);
     this.camLabel.style('color', 'white');
@@ -17,7 +14,6 @@ class UIManager {
     this.camSlider.position(10, 130);
     this.camSlider.style('width', '200px');
 
-    // 波の音の強弱を調整するスライダーとラベルを作成
     this.waveLabel = createDiv('Wave Strength:');
     this.waveLabel.position(10, 160);
     this.waveLabel.style('color', 'white');
@@ -25,7 +21,6 @@ class UIManager {
     this.waveSlider.position(10, 180);
     this.waveSlider.style('width', '200px');
 
-    // 波の色を調整するスライダーとラベルを作成
     this.colorLabel = createDiv('Wave Color:');
     this.colorLabel.position(10, 210);
     this.colorLabel.style('color', 'white');
@@ -33,7 +28,6 @@ class UIManager {
     this.colorSlider.position(10, 230);
     this.colorSlider.style('width', '200px');
 
-    // 波の描画速度を調整するスライダーとラベルを作成
     this.speedLabel = createDiv('Wave Speed:');
     this.speedLabel.position(10, 260);
     this.speedLabel.style('color', 'white');
@@ -43,7 +37,7 @@ class UIManager {
   }
 
   requestAudioPermissions() {
-    // ユーザーのクリック後にオーディオコンテキストを開始
+    console.log('Requesting audio permissions...');
     userStartAudio().then(() => {
       console.log('Audio context started');
       this.getAudioDevices();
@@ -53,11 +47,12 @@ class UIManager {
   }
 
   getAudioDevices() {
+    console.log('Getting user media...');
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      console.log('User media obtained');
       navigator.mediaDevices.enumerateDevices().then(devices => {
         let audioDevices = devices.filter(device => device.kind === 'audioinput');
-        console.log('Available audio input devices:');
-        console.log(audioDevices);
+        console.log('Available audio input devices:', audioDevices);
 
         this.deviceSelect.option('Select a device', ''); // 初期選択肢
         audioDevices.forEach((device, index) => {
@@ -65,9 +60,8 @@ class UIManager {
           console.log(`${index}: ${device.label}`);
         });
 
-        // デバイス選択時の動作を定義
         this.deviceSelect.changed(() => {
-          selectedDeviceId = this.deviceSelect.value();
+          let selectedDeviceId = this.deviceSelect.value();
           if (selectedDeviceId) {
             console.log(`Selected device ID: ${selectedDeviceId}`);
             visualizer.startAudioStream(selectedDeviceId);
