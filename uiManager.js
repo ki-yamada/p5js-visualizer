@@ -1,3 +1,4 @@
+
 class UIManager {
   constructor() {
     // デバイス選択のドロップダウンメニューを作成
@@ -43,10 +44,16 @@ class UIManager {
   }
 
   requestAudioPermissions() {
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      this.selectAudioInputDevice();
+    // ユーザーのクリック後にオーディオコンテキストを開始
+    userStartAudio().then(() => {
+      console.log('Audio context started');
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        this.selectAudioInputDevice();
+      }).catch(err => {
+        console.error('Error accessing the audio input device:', err);
+      });
     }).catch(err => {
-      console.error('Error accessing the audio input device:', err);
+      console.error('Error starting audio context:', err);
     });
   }
 

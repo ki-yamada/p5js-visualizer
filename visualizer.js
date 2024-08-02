@@ -6,21 +6,24 @@ class Visualizer {
 
     this.mic = new p5.AudioIn();
     this.fft = new p5.FFT();
-    
+
+    // ユーザージェスチャーの後にオーディオコンテキストを開始
     userStartAudio().then(() => {
       console.log('Audio context started');
+    });
+  }
+
+  startAudioStream(deviceId) {
+    navigator.mediaDevices.getUserMedia({
+      audio: {
+        deviceId: deviceId ? { exact: deviceId } : undefined
+      }
+    }).then(stream => {
       let audioContext = getAudioContext();
-      navigator.mediaDevices.enumerateDevices().then(devices => {
-        let audioDevices = devices.filter(device => device.kind === 'audioinput');
-        if (audioDevices.length > 0) {
-          navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevices[0].deviceId } }).then(stream => {
-            let source = audioContext.createMediaStreamSource(stream);
-            this.fft.setInput(source);
-          }).catch(err => {
-            console.error('Error accessing the audio input device:', err);
-          });
-        }
-      });
+      let source = audioContext.createMediaStreamSource(stream);
+      this.fft.setInput(source);
+    }).catch(err => {
+      console.error('Error accessing the audio input device:', err);
     });
   }
 
