@@ -13,7 +13,7 @@ class UIManager {
     this.camLabel = createDiv('Camera Dynamic:');
     this.camLabel.position(10, 110);
     this.camLabel.style('color', 'white');
-    this.camSlider = createSlider(1, 10, 3);
+    this.camSlider = createSlider(1, 30, 3);
     this.camSlider.position(10, 130);
     this.camSlider.style('width', '200px');
 
@@ -37,6 +37,13 @@ class UIManager {
     this.speedSlider = createSlider(0.1, 1, 0.5, 0.1);
     this.speedSlider.position(10, 280);
     this.speedSlider.style('width', '200px');
+
+    this.numShapesLabel = createDiv('Number of Shapes:');
+    this.numShapesLabel.position(10, 310);
+    this.numShapesLabel.style('color', 'white');
+    this.numShapesSlider = createSlider(10, 2000, 100, 10);
+    this.numShapesSlider.position(10, 330);
+    this.numShapesSlider.style('width', '200px');
   }
 
   requestAudioPermissions() {
@@ -70,7 +77,7 @@ class UIManager {
         let selectedDeviceId = this.deviceSelect.value();
         if (selectedDeviceId) {
           console.log(`Selected device ID: ${selectedDeviceId}`);
-          // visualizer.startAudioStream(selectedDeviceId); // visualizerが未定義のためコメントアウト
+          visualizer.startAudioStream(selectedDeviceId);
         } else {
           console.error('No audio input device selected.');
         }
@@ -88,10 +95,12 @@ class UIManager {
     this.waveSlider.show();
     this.colorSlider.show();
     this.speedSlider.show();
+    this.numShapesSlider.show();
     this.camLabel.show();
     this.waveLabel.show();
     this.colorLabel.show();
     this.speedLabel.show();
+    this.numShapesLabel.show();
   }
 
   hide() {
@@ -101,15 +110,11 @@ class UIManager {
     this.waveSlider.hide();
     this.colorSlider.hide();
     this.speedSlider.hide();
+    this.numShapesSlider.hide();
     this.camLabel.hide();
     this.waveLabel.hide();
     this.colorLabel.hide();
     this.speedLabel.hide();
+    this.numShapesLabel.hide();
   }
-}
-
-function setup() {
-  noCanvas();
-  let uiManager = new UIManager();
-  uiManager.show();
 }

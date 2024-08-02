@@ -1,5 +1,6 @@
 class Visualizer {
-  constructor() {
+  constructor(uiManager) {
+    this.uiManager = uiManager;
     this.angle = 0;
     this.cam = createCamera();
     this.cam.setPosition(0, 0, 200);
@@ -7,9 +8,38 @@ class Visualizer {
     this.mic = new p5.AudioIn();
     this.fft = new p5.FFT();
 
-    // ユーザージェスチャーの後にオーディオコンテキストを開始
+    this.shapes = [];
+    this.generateShapes(100);  // 初期値として100個の形状を生成
+
     userStartAudio().then(() => {
       console.log('Audio context started');
+    });
+
+    // 使用する色のリスト
+    this.colors = ['#f7c428', '#ed5419', '#ea3117', '#1200ea', '#080064', '#be2538', '#47d23f'];
+  }
+
+  generateShapes(numShapes) {
+    this.shapes = [];
+    let fib = [1, 1];
+    for (let i = 2; i < numShapes; i++) {
+      fib[i] = fib[i - 1] + fib[i - 2];
+    }
+
+    let maxDistance = 600;
+    fib.forEach((value, index) => {
+      let angle1 = random(TWO_PI);
+      let angle2 = random(PI);
+      let distance = map(index, 0, fib.length, 0, maxDistance);
+      let size = map(index, 0, fib.length, 5, 100) + random(-10, 10); // 最小値を5に調整
+      this.shapes.push({
+        x: distance * sin(angle2) * cos(angle1),
+        y: distance * sin(angle2) * sin(angle1),
+        z: distance * cos(angle2),
+        size: size,
+        type: index % 3, // 0: bass, 1: mid, 2: treble
+        color: random(this.colors) // 色をランダムに設定
+      });
     });
   }
 
@@ -37,7 +67,7 @@ class Visualizer {
     this.midEnergy = this.fft.getEnergy("mid");
     this.trebleEnergy = this.fft.getEnergy("treble");
 
-    let bassFactor = map(this.bassEnergy, 0, 255, 1, uiManager.camSlider.value());
+    let bassFactor = map(pow(this.bassEnergy / 255.0, 2), 0, 1, 1, this.uiManager.camSlider.value());
     this.camX = sin(this.angle * 0.02) * 300 * bassFactor;
     this.camY = cos(this.angle * 0.02) * 300 * bassFactor;
     this.camZ = 200 + sin(this.angle * 0.04) * 300 * bassFactor;
@@ -45,7 +75,10 @@ class Visualizer {
     this.cam.setPosition(this.camX, this.camY, this.camZ);
     this.cam.lookAt(0, 0, 0);
 
-    this.angle += map(this.bassEnergy, 0, 255, 0, uiManager.speedSlider.value());
+    this.angle += map(this.bassEnergy, 0, 255, 0, this.uiManager.speedSlider.value());
+
+    // キューブの数を調整
+    this.generateShapes(this.uiManager.numShapesSlider.value());
   }
 
   display() {
@@ -53,24 +86,35 @@ class Visualizer {
 
     background(0);
     noFill();
-    stroke(uiManager.colorSlider.value());
 
-    let waveform = this.fft.waveform();
-    for (let z = -500; z <= 500; z += 100) {
-      beginShape();
-      for (let i = 0; i < waveform.length; i++) {
-        let x = map(i, 0, waveform.length - 1, -500, 500);
-        let y;
-        if (z % 300 == 0) {
-          y = waveform[i] * 250 * map(this.bassEnergy, 0, 255, 0.5, uiManager.waveSlider.value());
-        } else if (z % 300 == 100) {
-          y = waveform[i] * 250 * map(this.midEnergy, 0, 255, 0.5, uiManager.waveSlider.value());
-        } else {
-          y = waveform[i] * 250 * map(this.trebleEnergy, 0, 255, 0.5, uiManager.waveSlider.value());
-        }
-        vertex(x, y, z);
+    let bassSize = map(pow(this.bassEnergy / 255.0, 2), 0, 1, 5, 300);
+    let midSize = map(pow(this.midEnergy / 255.0, 2), 0, 1, 5, 300);
+    let trebleSize = map(pow(this.trebleEnergy / 255.0, 2), 0, 1, 5, 300);
+
+    // 低音のエネルギーに応じて表示するキューブの数を決定
+    let numberOfShapes = int(map(this.bassEnergy, 0, 255, 5, this.uiManager.numShapesSlider.value()));
+    let shapesToDisplay = this.shapes.slice(0, numberOfShapes);
+
+    shapesToDisplay.forEach(shape => {
+      push();
+      translate(shape.x, shape.y, shape.z);
+      rotateX(this.angle * 0.01);
+      rotateY(this.angle * 0.01);
+
+      // キューブの色を設定
+      fill(shape.color);
+      stroke(shape.color);
+
+      let size = shape.size;
+      if (shape.type === 0) {
+        size *= map(this.bassEnergy, 0, 255, 0.5, 1.5);
+      } else if (shape.type === 1) {
+        size *= map(this.midEnergy, 0, 255, 0.5, 1.5);
+      } else if (shape.type === 2) {
+        size *= map(this.trebleEnergy, 0, 255, 0.5, 1.5);
       }
-      endShape();
-    }
+      box(size);
+      pop();
+    });
   }
 }
