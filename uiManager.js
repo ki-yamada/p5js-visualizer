@@ -55,13 +55,15 @@ class UIManager {
   getAudioDevices() {
     console.log('Getting user media...');
     navigator.mediaDevices.enumerateDevices().then(devices => {
+      console.log('Devices:', devices); // すべてのデバイス情報をログに出力
+
       let audioDevices = devices.filter(device => device.kind === 'audioinput');
       console.log('Available audio input devices:', audioDevices);
 
       this.deviceSelect.option('Select a device', ''); // 初期選択肢
       audioDevices.forEach((device, index) => {
         this.deviceSelect.option(device.label || `Device ${index}`, device.deviceId);
-        console.log(`${index}: ${device.label}`);
+        console.log(`${index}: ${device.label || `Device ${index}`}`);
       });
 
       this.deviceSelect.changed(() => {
